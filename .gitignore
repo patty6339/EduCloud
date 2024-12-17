@@ -1,0 +1,7 @@
+node modules
+.env    
+Dockerfile
+docker-compose.yml
+package.json
+node_modules
+
