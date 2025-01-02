@@ -1,7 +1,5 @@
 node modules  
-Dockerfile
-docker-compose.yml
 node_modules
 .env
-package.json
+
 

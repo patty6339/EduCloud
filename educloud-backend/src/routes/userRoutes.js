@@ -10,26 +10,29 @@ router.post('/login', userController.login);
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password/:token', userController.resetPassword);
 
-// Protected routes
-router.use(protect); // All routes below this will require authentication
+// Protected routes - require authentication only
+router.use(protect);
 
-// Profile routes
-router.get('/profile', userController.getProfile);
-router.put('/profile', uploadProfileImage, userController.updateProfile);
-router.put('/change-password', userController.changePassword);
-
-// Course enrollment routes
+// Course enrollment routes (available to all authenticated users)
+router.post('/enroll/:courseId', userController.enrollInCourse);
 router.get('/courses', userController.getEnrolledCourses);
 router.get('/progress/:courseId', userController.getCourseProgress);
 
-// Settings routes
+// Profile routes (available to all authenticated users)
+router.get('/profile', userController.getProfile);
+router.put('/profile', uploadProfileImage, userController.updateProfile);
+router.put('/change-password', userController.changePassword);
 router.put('/settings', userController.updateSettings);
 
 // Admin only routes
-router.use(authorize(['admin'])); // All routes below this require admin role
-router.get('/', userController.getAllUsers);
-router.get('/:id', userController.getUserById);
-router.put('/:id', userController.updateUser);
-router.delete('/:id', userController.deleteUser);
+const adminRouter = express.Router();
+adminRouter.use(authorize(['admin']));
+adminRouter.get('/', userController.getAllUsers);
+adminRouter.get('/:id', userController.getUserById);
+adminRouter.put('/:id', userController.updateUser);
+adminRouter.delete('/:id', userController.deleteUser);
+
+// Mount admin routes
+router.use('/admin', adminRouter);
 
 module.exports = router;

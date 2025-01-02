@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="225" viewBox="0 0 400 225" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="225" fill="#e8f5e9"/>
+  <circle cx="200" cy="112" r="40" fill="#4caf50"/>
+  <path d="M190 112l30 20l-30 20z" fill="#ffffff"/>
+  <text x="200" y="180" font-family="Arial" font-size="16" text-anchor="middle" fill="#4caf50">Live Class</text>
+</svg>

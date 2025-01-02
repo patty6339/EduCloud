@@ -19,7 +19,7 @@ exports.protect = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // 3) Check if user still exists
-        const user = await User.findById(decoded.userId).select('-password');
+        const user = await User.findById(decoded.userId || decoded.userID).select('-password');
         if (!user) {
             return next(new APIError('The user belonging to this token no longer exists.', 401));
         }
@@ -28,6 +28,7 @@ exports.protect = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
+        console.error('Auth error:', error);
         next(new APIError('Invalid token. Please log in again.', 401));
     }
 };

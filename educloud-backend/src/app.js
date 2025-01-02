@@ -15,18 +15,31 @@ const { protect } = require('./middlewares/authMiddleware');
 const userRoutes = require('./routes/userRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
+const liveClassRoutes = require('./routes/liveClassRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => {
+    console.error('MongoDB connection error:', err);
+    // Don't exit process, allow server to start even if DB connection fails
+});
 
 // Middleware
 app.use(helmet()); // Security headers
-app.use(cors());
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL 
+        : 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(compression()); // Compress responses
 app.use(morgan('dev')); // Logging
 app.use(express.json());
@@ -35,25 +48,26 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Setup Swagger documentation
+require('./config/swagger')(app);
+
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/courses/:courseId/live-classes', liveClassRoutes);
+app.use('/api/live-classes', liveClassRoutes);
 
-// Health check route
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Welcome to EduCloud API',
+        documentation: '/api-docs',
+        version: '1.0.0'
+    });
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ message: 'Route not found' });
-});
-
-// Error handler
+// Error handling
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+module.exports = app;

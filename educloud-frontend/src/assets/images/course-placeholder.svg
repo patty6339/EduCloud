@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="225" viewBox="0 0 400 225" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="225" fill="#e3f2fd"/>
+  <g transform="translate(175,85)">
+    <rect x="0" y="0" width="50" height="60" fill="#1976d2"/>
+    <path d="M10 15h30M10 30h30M10 45h20" stroke="#ffffff" stroke-width="2"/>
+  </g>
+  <text x="200" y="180" font-family="Arial" font-size="16" text-anchor="middle" fill="#1976d2">Course Preview</text>
+</svg>

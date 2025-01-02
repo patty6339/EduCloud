@@ -26,43 +26,21 @@ const enrollmentSchema = new mongoose.Schema({
             ref: 'Lesson'
         }],
         lastAccessed: {
-            type: Date
+            type: Date,
+            default: Date.now
         },
         percentageCompleted: {
             type: Number,
             default: 0
-        }
-    },
-    certificate: {
-        issued: {
-            type: Boolean,
-            default: false
-        },
-        issueDate: {
-            type: Date
-        },
-        certificateUrl: {
-            type: String
-        }
-    },
-    rating: {
-        score: {
-            type: Number,
-            min: 1,
-            max: 5
-        },
-        review: {
-            type: String
-        },
-        date: {
-            type: Date
         }
     }
 }, {
     timestamps: true
 });
 
-// Ensure unique enrollment
+// Add indexes
 enrollmentSchema.index({ userId: 1, courseId: 1 }, { unique: true });
 
-module.exports = mongoose.model('Enrollment', enrollmentSchema);
+const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
+
+module.exports = Enrollment;

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#fafafa"/>
+  <g transform="translate(100,50)">
+    <path d="M50 0l50 30v60l-50 30l-50-30v-60z" fill="#eeeeee" stroke="#bdbdbd"/>
+    <text x="50" y="70" font-family="Arial" font-size="14" text-anchor="middle" fill="#9e9e9e">No Data</text>
+  </g>
+</svg>

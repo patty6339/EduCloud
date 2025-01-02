@@ -4,7 +4,7 @@ const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
 
-const baseURL = `http://localhost:${process.env.PORT || 3000}/api`;
+const baseURL = `http://localhost:${process.env.PORT || 3001}/api`;
 let adminToken, instructorToken, studentToken;
 
 // Test user credentials

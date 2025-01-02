@@ -13,7 +13,7 @@ exports.register = handleAsync(async (req, res) => {
     // Check if user exists
     const userExists = await User.findOne({ email: email.toLowerCase() });
     if (userExists) {
-        return res.status(400).json({ message: 'User already exists' });
+        throw new APIError('User already exists', 400);
     }
 
     // Create user
@@ -32,8 +32,9 @@ exports.register = handleAsync(async (req, res) => {
     );
 
     res.status(201).json({
+        status: 'success',
         token,
-        user: {
+        data: {
             id: user._id,
             name: user.name,
             email: user.email,
@@ -49,7 +50,7 @@ exports.login = handleAsync(async (req, res) => {
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user || !(await user.comparePassword(password))) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        throw new APIError('Invalid email or password', 401);
     }
 
     // Generate token
@@ -60,8 +61,9 @@ exports.login = handleAsync(async (req, res) => {
     );
 
     res.json({
+        status: 'success',
         token,
-        user: {
+        data: {
             id: user._id,
             name: user.name,
             email: user.email,
@@ -76,7 +78,7 @@ exports.forgotPassword = handleAsync(async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-        return res.status(404).json({ message: 'No user found with this email' });
+        throw new APIError('No user found with this email', 404);
     }
 
     // Generate reset token
@@ -87,7 +89,10 @@ exports.forgotPassword = handleAsync(async (req, res) => {
     await user.save();
 
     // In a real application, send email with reset token
-    res.json({ message: 'Password reset token sent to email' });
+    res.json({
+        status: 'success',
+        message: 'Password reset token sent to email'
+    });
 });
 
 // Reset password
@@ -104,7 +109,7 @@ exports.resetPassword = handleAsync(async (req, res) => {
     });
 
     if (!user) {
-        return res.status(400).json({ message: 'Invalid or expired reset token' });
+        throw new APIError('Invalid or expired reset token', 400);
     }
 
     // Set new password
@@ -113,13 +118,19 @@ exports.resetPassword = handleAsync(async (req, res) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
-    res.json({ message: 'Password reset successful' });
+    res.json({
+        status: 'success',
+        message: 'Password reset successful'
+    });
 });
 
 // Get user profile
 exports.getProfile = handleAsync(async (req, res) => {
     const user = await User.findById(req.user._id).select('-password');
-    res.json({ user });
+    res.json({
+        status: 'success',
+        data: user
+    });
 });
 
 // Update user profile
@@ -134,7 +145,10 @@ exports.updateProfile = handleAsync(async (req, res) => {
     }
 
     const updatedUser = await user.save();
-    res.json({ user: updatedUser });
+    res.json({
+        status: 'success',
+        data: updatedUser
+    });
 });
 
 // Change password
@@ -144,43 +158,49 @@ exports.changePassword = handleAsync(async (req, res) => {
 
     // Check current password
     if (!(await user.comparePassword(currentPassword))) {
-        return res.status(401).json({ message: 'Current password is incorrect' });
+        throw new APIError('Current password is incorrect', 401);
     }
 
     // Update password
     user.password = newPassword;
     await user.save();
 
-    res.json({ message: 'Password updated successfully' });
+    res.json({
+        status: 'success',
+        message: 'Password updated successfully'
+    });
 });
 
 // Get enrolled courses
 exports.getEnrolledCourses = handleAsync(async (req, res) => {
-    const enrollments = await Enrollment.find({ student: req.user._id })
-        .populate({
-            path: 'course',
-            select: 'title description instructor',
-            populate: {
-                path: 'instructor',
-                select: 'name email'
-            }
-        });
+    const enrollments = await Enrollment.find({ userId: req.user._id })
+        .populate('courseId', 'title description instructor')
+        .sort('-createdAt');
 
-    res.json({ enrollments });
+    res.json({
+        status: 'success',
+        data: enrollments
+    });
 });
 
 // Get course progress
 exports.getCourseProgress = handleAsync(async (req, res) => {
     const enrollment = await Enrollment.findOne({
-        student: req.user._id,
-        course: req.params.courseId
+        userId: req.user._id,
+        courseId: req.params.courseId
     }).populate('completedLessons');
 
     if (!enrollment) {
-        return res.status(404).json({ message: 'Enrollment not found' });
+        throw new APIError('Enrollment not found', 404);
     }
 
-    res.json({ progress: enrollment.progress });
+    res.json({
+        status: 'success',
+        data: {
+            progress: enrollment.progress,
+            status: enrollment.status
+        }
+    });
 });
 
 // Update user settings
@@ -188,44 +208,104 @@ exports.updateSettings = handleAsync(async (req, res) => {
     const user = await User.findById(req.user._id);
     user.settings = { ...user.settings, ...req.body };
     await user.save();
-    res.json({ settings: user.settings });
+    res.json({
+        status: 'success',
+        data: user.settings
+    });
+});
+
+// Enroll in a course
+exports.enrollInCourse = handleAsync(async (req, res) => {
+    const courseId = req.params.courseId;
+    const userId = req.user._id;
+
+    // Check if course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+        throw new APIError('Course not found', 404);
+    }
+
+    // Check if already enrolled
+    const existingEnrollment = await Enrollment.findOne({ userId, courseId });
+    if (existingEnrollment) {
+        throw new APIError('Already enrolled in this course', 400);
+    }
+
+    // Create enrollment
+    const enrollment = new Enrollment({
+        userId,
+        courseId,
+        status: 'active',
+        progress: {
+            completedLessons: [],
+            lastAccessed: new Date(),
+            percentageCompleted: 0
+        }
+    });
+
+    await enrollment.save();
+
+    // Update course enrollment count
+    await Course.findByIdAndUpdate(courseId, { $inc: { enrollmentCount: 1 } });
+
+    res.status(201).json({
+        status: 'success',
+        message: 'Successfully enrolled in course',
+        data: {
+            courseId: enrollment.courseId,
+            status: enrollment.status,
+            enrollmentDate: enrollment.createdAt
+        }
+    });
 });
 
 // Admin: Get all users
 exports.getAllUsers = handleAsync(async (req, res) => {
     const users = await User.find().select('-password');
-    res.json({ users });
+    res.json({
+        status: 'success',
+        data: users
+    });
 });
 
 // Admin: Get user by ID
 exports.getUserById = handleAsync(async (req, res) => {
     const user = await User.findById(req.params.id).select('-password');
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        throw new APIError('User not found', 404);
     }
-    res.json({ user });
+    res.json({
+        status: 'success',
+        data: user
+    });
 });
 
 // Admin: Update user
 exports.updateUser = handleAsync(async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        throw new APIError('User not found', 404);
     }
 
     // Update fields
     Object.assign(user, req.body);
     const updatedUser = await user.save();
-    res.json({ user: updatedUser });
+    res.json({
+        status: 'success',
+        data: updatedUser
+    });
 });
 
 // Admin: Delete user
 exports.deleteUser = handleAsync(async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        throw new APIError('User not found', 404);
     }
 
     await user.remove();
-    res.json({ message: 'User deleted successfully' });
+    res.json({
+        status: 'success',
+        message: 'User deleted successfully'
+    });
 });
