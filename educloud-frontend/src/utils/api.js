@@ -24,26 +24,26 @@ api.interceptors.request.use(
   }
 );
 
-// Auth APIs
+// // Auth APIs
 export const login = async (credentials) => {
   const { data } = await api.post('/auth/login', credentials);
   return data;
 };
 
-export const register = async (userData) => {
-  const { data } = await api.post('/auth/register', userData);
-  return data;
-};
+// // export const register = async (userData) => {
+// //   const { data } = await api.post('/auth/register', userData);
+// //   return data;
+// // };
 
-// Course APIs
-export const getStudentCourses = async () => {
-  const { data } = await api.get('/courses');
-  return data;
-};
+// // Course APIs
+// export const getStudentCourses = async () => {
+//   const { data } = await api.get('/courses');
+//   return data;
+// };
 
-export const getCourseDetails = async (courseId) => {
-  const { data } = await api.get(`/courses/${courseId}`);
-  return data;
-};
+// export const getCourseDetails = async (courseId) => {
+//   const { data } = await api.get(`/courses/${courseId}`);
+//   return data;
+// };
 
 export default api;

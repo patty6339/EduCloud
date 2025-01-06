@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Login from './components/Auth/Login';
-import Signup from './components/Auth/Signup';
+import Login from './components/Auth/login';
+// import Signup from './components/Auth/Signup';
 import StudentDashboard from './components/Dashboard/StudentDashboard';
 import TeacherDashboard from './components/Dashboard/TeacherDashboard';
 import AdminDashboard from './components/Dashboard/AdminDashboard';

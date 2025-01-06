@@ -1,8 +1,8 @@
 import React from 'react';
 import { Container, Typography, Grid, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Shared/Navbar';
-import Footer from '../components/Shared/Footer';
+import Navbar from './../components/shared/Navbar';
+import Footer from './../components/shared/Footer';
 import heroImage from '../assets/images/hero.svg';
 
 const Home = () => {

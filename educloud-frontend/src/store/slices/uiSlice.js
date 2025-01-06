@@ -4,6 +4,7 @@ const initialState = {
   isLoading: false,
   notification: null,
   theme: 'light',
+  error: null,  // Added error field
 };
 
 const uiSlice = createSlice({
@@ -19,6 +20,9 @@ const uiSlice = createSlice({
         message: action.payload.message,
       };
     },
+    setError: (state, action) => {  // Correctly defined setError reducer
+      state.error = action.payload;
+    },
     clearNotification: (state) => {
       state.notification = null;
     },
@@ -28,6 +32,4 @@ const uiSlice = createSlice({
   },
 });
 
-export const { setLoading, showNotification, clearNotification, toggleTheme } = uiSlice.actions;
-
-export default uiSlice.reducer;
+export const { setLoading, showNotification, setError, clearNotification, toggleTheme } = uiSlice.actions;
