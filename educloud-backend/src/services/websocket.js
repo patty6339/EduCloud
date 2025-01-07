@@ -1,7 +1,7 @@
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-const User = require('../models/user.model');
+const User = require('../models/userModel');
 
 class WebSocketManager {
   constructor(server) {

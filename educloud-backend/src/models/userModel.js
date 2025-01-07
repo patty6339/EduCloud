@@ -1,19 +1,23 @@
-const pool = require('../config/db');
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, required: true },
+});
+
+// Check if the model is already defined
+const UserModel = mongoose.models.User || mongoose.model('User', userSchema);
 
 class User {
   static async findByEmail(email) {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    return result.rows[0];
+    return await UserModel.findOne({ email });
   }
 
   static async create({ email, password, role }) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      'INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING *',
-      [email, hashedPassword, role]
-    );
-    return result.rows[0];
+    return await UserModel.create({ email, password: hashedPassword, role });
   }
 
   async verifyPassword(password) {
